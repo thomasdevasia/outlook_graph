@@ -92,7 +92,8 @@ def searchInsideAttachment(token, mailId, searchText):
             f.write(base64.b64decode(attachment['contentBytes']))
     
     attachmentsList = os.listdir(Download_Cache)
-    
+    attachmentsList.remove('.gitkeep')
+
     # searching for the keyword inside the file
     for attachment in attachmentsList:
         if searchFile(Download_Cache + attachment, searchText):
