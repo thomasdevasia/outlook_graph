@@ -3,6 +3,8 @@ config.dev.cfg
 .ipynb_checkpoints/
 .vscode/
 
+~$*
+
 response_download/*
 output/*
 
