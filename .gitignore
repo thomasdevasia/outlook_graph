@@ -1,2 +1,10 @@
 access_token.json
+config.dev.cfg
+.ipynb_checkpoints/
+.vscode/
+
 ./response_download/*
+./output/*
+
+!./response_download/.gitkeep
+!./output/.gitkeep
