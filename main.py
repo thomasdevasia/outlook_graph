@@ -32,19 +32,35 @@ class microsoftGraph:
         
         self.Graph_API_Endpoint = 'https://graph.microsoft.com/v1.0'
 
-
-        if os.path.exists('access_token.json'):
-            print('Found access_token.json')
-            self.token = self.get_token()
-            # for company in data:
-            #     searchAndFind(token, company['searchItem'])
-        else:
-            print('No access_token.json found')
-            self.token = self.create_access_token()            
+        self.token = self.get_token()    
 
         self.headers = {
             'Authorization': 'Bearer ' + self.token['access_token']
         }
+
+    # return token for further api request
+    def get_token(self):
+
+        if os.path.exists('access_token.json'):
+            print('Found access_token.json')
+            
+            access_token_cache = msal.SerializableTokenCache()
+
+            with open('access_token.json', 'r') as f:
+                access_token_cache.deserialize(f.read())
+
+            client = msal.PublicClientApplication(self.client_id, token_cache=access_token_cache)
+            accounts = client.get_accounts()[0]
+
+            print(accounts)
+
+            token = client.acquire_token_silent(self.scopes, account=accounts)
+
+        else:
+            print('No access_token.json found')
+            token = self.create_access_token()        
+        
+        return token
     
     # creating access token JSON file for the account
     def create_access_token(self):
@@ -68,22 +84,6 @@ class microsoftGraph:
         
         return access_token
 
-    # return token for further api request
-    def get_token(self):
-
-        access_token_cache = msal.SerializableTokenCache()
-
-        with open('access_token.json', 'r') as f:
-            access_token_cache.deserialize(f.read())
-
-        client = msal.PublicClientApplication(self.client_id, token_cache=access_token_cache)
-        accounts = client.get_accounts()[0]
-
-        print(accounts)
-
-        token = client.acquire_token_silent(self.scopes, account=accounts)
-
-        return token
 
     # Search Mail with the search text
     def searchMail(self, searchText, hasAttachments=False):
@@ -145,8 +145,6 @@ class microsoftGraph:
                 # deleting the downloaded cache
                 for attachment in attachmentsList:
                     os.remove(Download_Cache + attachment)
-
-                # searchInsideAttachment(self.token, mail['id'], searchText)
 
 
 
