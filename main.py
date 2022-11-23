@@ -128,7 +128,7 @@ class microsoftGraph:
         data = df.to_dict('records')
 
         for company in tqdm(data, desc='Searching for mails', unit='mails'):
-            searchText = company['searchItem']
+            searchText = format(int(company['searchItem']), ',d')
             mails = self.searchMail(searchText, True)
             # print('Found {} mails for {}'.format(len(mails), searchText))
             # print(len(mails), searchText)
@@ -161,7 +161,8 @@ def searchFile(filePath, searchText):
 
     for i in range(totalPages):
         page = pdfFile.getPage(i)
-        pageContent = page.extractText().replace('\n', '').replace(',','')
+        # pageContent = page.extractText().replace('\n', '').replace(',','')
+        pageContent = page.extractText().replace('\n', '')
         # print(searchText, pageContent)
         if  re.search(r'{}'.format(searchText), pageContent):
             found = True
