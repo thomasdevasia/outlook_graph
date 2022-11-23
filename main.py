@@ -131,6 +131,7 @@ class microsoftGraph:
             searchText = company['searchItem']
             mails = self.searchMail(searchText, True)
             # print('Found {} mails for {}'.format(len(mails), searchText))
+            # print(len(mails), searchText)
 
             for mail in mails:
                 attachments = self.getAttachments(mail['id'], download=True, downloadPath=Download_Cache)
@@ -160,7 +161,8 @@ def searchFile(filePath, searchText):
 
     for i in range(totalPages):
         page = pdfFile.getPage(i)
-        pageContent = page.extractText()
+        pageContent = page.extractText().replace('\n', '').replace(',','')
+        # print(searchText, pageContent)
         if  re.search(r'{}'.format(searchText), pageContent):
             found = True
     
@@ -177,6 +179,7 @@ if __name__ == '__main__':
 
     # Read the file
     df = pd.read_excel(filePath)
+    # print(df.head())
 
     mail = microsoftGraph('config.dev.cfg')
 
