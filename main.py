@@ -127,13 +127,13 @@ class microsoftGraph:
         
         data = df.to_dict('records')
 
-        for company in tqdm(data, desc='Searching for mails', unit='mails'):
-            searchText = format(int(company['searchItem']), ',d')
+        for company in data:
+            searchText = format(int(company['searchItem']), ',.2f')
             mails = self.searchMail(searchText, True)
-            # print('Found {} mails for {}'.format(len(mails), searchText))
+            print('Found {} mails for {}'.format(len(mails), searchText))
             # print(len(mails), searchText)
 
-            for mail in mails:
+            for mail in tqdm(mails, desc='Searching for mails', unit='mails'):
                 attachments = self.getAttachments(mail['id'], download=True, downloadPath=Download_Cache)
                 
                 attachmentsList = os.listdir(Download_Cache)
