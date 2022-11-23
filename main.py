@@ -7,6 +7,7 @@ import base64
 import shutil
 import re
 
+from tqdm import tqdm
 import PyPDF2
 import pandas as pd
 
@@ -31,7 +32,7 @@ class microsoftGraph:
         self.scopes = azure_settings['graphUserScopes'].split(' ')
         
         self.Graph_API_Endpoint = 'https://graph.microsoft.com/v1.0'
-
+        
         self.token = self.get_token()    
 
         self.headers = {
@@ -43,15 +44,16 @@ class microsoftGraph:
 
         if os.path.exists('access_token.json'):
             print('Found access_token.json')
-            
+
             access_token_cache = msal.SerializableTokenCache()
 
             with open('access_token.json', 'r') as f:
                 access_token_cache.deserialize(f.read())
 
             client = msal.PublicClientApplication(self.client_id, token_cache=access_token_cache)
+            
+            
             accounts = client.get_accounts()[0]
-
             print(accounts)
 
             token = client.acquire_token_silent(self.scopes, account=accounts)
@@ -87,7 +89,7 @@ class microsoftGraph:
 
     # Search Mail with the search text
     def searchMail(self, searchText, hasAttachments=False):
-        print('Searching for correct mails for {}'.format(searchText))
+        # print('Searching for correct mails for {}'.format(searchText))
 
         endpoint = self.Graph_API_Endpoint + f'/me/messages?$search="{searchText}"'
 
@@ -105,7 +107,7 @@ class microsoftGraph:
         return mails
 
     def getAttachments(self, mailId, download=False, downloadPath='./'):
-        print('Getting attachments for mail {}'.format(mailId))
+        # print('Getting attachments for mail {}'.format(mailId))
 
         endpoint = self.Graph_API_Endpoint + f'/me/messages/{mailId}/attachments'
         response = requests.get(endpoint, headers=self.headers)
@@ -125,10 +127,10 @@ class microsoftGraph:
         
         data = df.to_dict('records')
 
-        for company in data:
+        for company in tqdm(data, desc='Searching for mails', unit='mails'):
             searchText = company['searchItem']
             mails = self.searchMail(searchText, True)
-            print('Found {} mails for {}'.format(len(mails), searchText))
+            # print('Found {} mails for {}'.format(len(mails), searchText))
 
             for mail in mails:
                 attachments = self.getAttachments(mail['id'], download=True, downloadPath=Download_Cache)
@@ -139,7 +141,7 @@ class microsoftGraph:
                 # searching for the keyword inside the file
                 for attachment in attachmentsList:
                     if searchFile(Download_Cache + attachment, searchText):
-                        print( f'Found file with keyword({searchText}) inside attachment: {attachment}')
+                        # print( f'Found file with keyword({searchText}) inside attachment: {attachment}')
                         shutil.copy(Download_Cache + attachment, Output + attachment)
                 
                 # deleting the downloaded cache
