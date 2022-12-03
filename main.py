@@ -35,10 +35,6 @@ class microsoftGraph:
         
         self.token = self.get_token()    
 
-        self.headers = {
-            'Authorization': 'Bearer ' + self.token['access_token']
-        }
-
     # return token for further api request
     def get_token(self):
 
@@ -63,6 +59,7 @@ class microsoftGraph:
             token = self.create_access_token()        
         
         return token
+
     
     # creating access token JSON file for the account
     def create_access_token(self):
@@ -73,19 +70,39 @@ class microsoftGraph:
         client = msal.PublicClientApplication(self.client_id, token_cache=access_token_cache)
         flow = client.initiate_device_flow(scopes=self.scopes)
 
-        verification_uri = flow['verification_uri']
-        user_code = flow['user_code']
-        print(flow['message'])
-        webbrowser.open(verification_uri)
+        try:
+            verification_uri = flow['verification_uri']
+            user_code = flow['user_code']
+            print(flow['message'])
+            webbrowser.open(verification_uri)
 
-        # response access token and saving it
-        access_token = client.acquire_token_by_device_flow(flow)
+            # response access token and saving it
+            access_token = client.acquire_token_by_device_flow(flow)
 
-        with open('access_token.json', 'w') as f:
-            f.write(access_token_cache.serialize())
+            with open('access_token.json', 'w') as f:
+                f.write(access_token_cache.serialize())
         
+        except:
+            print('Error in creating access token')
+            print(flow)
+            sys.exit(1)
         return access_token
 
+
+    # Send request to the Graph API
+    def sendRequest(self, endpoint):
+
+        headers = {
+            'Authorization': 'Bearer ' + self.token['access_token']
+        }
+
+        response = requests.get(endpoint, headers=headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print('Error in sending request')
+            print(response.json())
+            sys.exit(1)
 
     # Search Mail with the search text
     def searchMail(self, searchText, hasAttachments=False):
@@ -93,9 +110,10 @@ class microsoftGraph:
 
         endpoint = self.Graph_API_Endpoint + f'/me/messages?$search="{searchText}"'
 
-        response = requests.get(endpoint, headers=self.headers)
+        response = self.sendRequest(endpoint)
         
-        mails = response.json()['value']
+        mails = response['value']
+        print(mails)
 
         if hasAttachments:
             temp = mails
@@ -110,9 +128,9 @@ class microsoftGraph:
         # print('Getting attachments for mail {}'.format(mailId))
 
         endpoint = self.Graph_API_Endpoint + f'/me/messages/{mailId}/attachments'
-        response = requests.get(endpoint, headers=self.headers)
+        response = self.sendRequest(endpoint)
 
-        attachments = response.json()['value']
+        attachments = response['value']
 
         if download:
             for attachment in attachments:
@@ -134,7 +152,7 @@ class microsoftGraph:
             # print(len(mails), searchText)
 
             for mail in tqdm(mails, desc='Searching for mails', unit='mails'):
-                attachments = self.getAttachments(mail['id'], download=True, downloadPath=Download_Cache)
+                self.getAttachments(mail['id'], download=True, downloadPath=Download_Cache)
                 
                 attachmentsList = os.listdir(Download_Cache)
                 attachmentsList.remove('.gitkeep')
