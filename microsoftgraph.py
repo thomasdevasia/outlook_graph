@@ -119,6 +119,10 @@ class microsoftGraph:
     def getAttachments(self, mailId, download=False, downloadPath='./'):
         # print('Getting attachments for mail {}'.format(mailId))
 
+        # check download path exists
+        if not os.path.exists(downloadPath):
+            os.makedirs(downloadPath)
+
         endpoint = self.Graph_API_Endpoint + f'/me/messages/{mailId}/attachments'
         response = self.sendRequest(endpoint)
 

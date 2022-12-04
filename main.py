@@ -46,14 +46,12 @@ def main(df, graphApi):
         mails = graphApi.searchMail(searchText, True)
         
         print('Found {} mails for {}'.format(len(mails), searchText))
-        # print(len(mails), searchText)
 
         for mail in tqdm(mails, desc='Searching the mails', unit='mails'):
 
             attachments = graphApi.getAttachments(mail['id'], download=True, downloadPath=Download_Cache)
             
             attachmentsList = os.listdir(Download_Cache)
-            attachmentsList.remove('.gitkeep')
 
             # searching for the keyword inside the file
             for attachment in attachmentsList:
@@ -69,12 +67,11 @@ def main(df, graphApi):
 
 if __name__ == '__main__':
 
-    # Get the path to the file
-    print(len(sys.argv), sys.argv)
     if len(sys.argv) != 2:
         print('Usage: python3 main.py \{fileName\}')
         sys.exit(1)
     else:
+        # path to the excel file
         filePath = sys.argv[1]
         if not os.path.exists(filePath):
             print('File not found')
@@ -86,4 +83,7 @@ if __name__ == '__main__':
 
     graphApi = microsoftGraph('config.dev.cfg')
 
+    if not os.path.exists(Output):
+        os.makedirs(Output)
+        
     main(df, graphApi)
